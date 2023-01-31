@@ -96,6 +96,7 @@
       thisProduct.initOrderForm();
       thisProduct.initAmountWidget();
       thisProduct.processOrder();
+      thisProduct.prepareCartProductParams();
       
     }
     renderInMenu(){
@@ -167,6 +168,8 @@
       for(let paramId in thisProduct.data.params) {
       // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
         const param = thisProduct.data.params[paramId];
+        //console.log(param);
+        
         //console.log(paramId, param);
         
         // for every option in this category
@@ -201,6 +204,36 @@
       thisProduct.priceElem.innerHTML = price;
       thisProduct.priceSingle = price;
     }
+    prepareCartProductParams(){
+      const thisProduct = this;
+      // covert form to object structure e.g. { sauce: ['tomato'], toppings: ['olives', 'redPeppers']}
+      const formData = utils.serializeFormToObject(thisProduct.form);
+      const params ={};
+      // for every category (param)...
+      for(let paramId in thisProduct.data.params) {
+        // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
+        const param = thisProduct.data.params[paramId];
+        // for every option in this category
+        for(let optionId in param.options) {
+        // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
+          const option = param.options[optionId];
+          /*sprawdzenie czy opcje są wybrane*/
+          //console.log(option);
+          
+          if(formData[paramId] && formData[paramId].includes(optionId)){
+            params[paramId] = {
+              label: param.label,
+              options: formData[paramId],
+              //options: {[optionId]:option.label}
+            };
+          }
+        }   
+      }
+      /*stworzenie obiektu z podsumowaniem*/
+      console.log(params);
+      return params; 
+    }   
+    
     initAmountWidget(){
       const thisProduct = this;
       thisProduct.amountWidget = new AmountWidget(thisProduct.amountWidgetElem);

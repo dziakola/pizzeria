@@ -96,7 +96,7 @@
       thisProduct.initOrderForm();
       thisProduct.initAmountWidget();
       thisProduct.processOrder();
-      thisProduct.prepareCartProductParams();
+
       
     }
     renderInMenu(){
@@ -213,24 +213,23 @@
       for(let paramId in thisProduct.data.params) {
         // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
         const param = thisProduct.data.params[paramId];
-        // for every option in this category
+        params[paramId] = {
+          label: param.label,
+          options:{
+          }
+        };
         for(let optionId in param.options) {
         // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
           const option = param.options[optionId];
           /*sprawdzenie czy opcje są wybrane*/
           //console.log(option);
-          
           if(formData[paramId] && formData[paramId].includes(optionId)){
-            params[paramId] = {
-              label: param.label,
-              options: formData[paramId],
-              //options: {[optionId]:option.label}
-            };
+            params[paramId].options[optionId] = option.label; 
           }
         }   
       }
       /*stworzenie obiektu z podsumowaniem*/
-      console.log(params);
+      //console.log(params);
       return params; 
     }   
     
@@ -249,8 +248,10 @@
         amount:thisProduct.amountWidget.value,
         priceSingle:thisProduct.data.price,
         price:thisProduct.priceSingle,
-        params:{},
+        params: thisProduct.prepareCartProductParams(),
       };
+      console.log(productSummary);
+       
       return productSummary;
     }
     addToCart(){
@@ -267,7 +268,7 @@
     constructor(element){
       const thisWidget = this;
       thisWidget.getElements(element);
-      thisWidget.setValue(thisWidget.input.value);
+      thisWidget.setValue(thisWidget.input.value||settings.amountWidget.defaultValue);
       thisWidget.initActions();
     }
     getElements(element){
@@ -280,7 +281,6 @@
     }
     setValue(value){
       const thisWidget = this;
-      thisWidget.value = settings.amountWidget.defaultValue;
       const newValue = parseInt(value);
       /*dodanie walidacji*/
       /*zapisanie przekazanego argumentu do value*/
@@ -320,6 +320,7 @@
       thisCart.products = [];
       thisCart.getElements(element);
       thisCart.initActions();
+      thisCart.add(thisCart.prepareCartProduct);
       
     }
     getElements(element){
@@ -327,6 +328,7 @@
       thisCart.dom = {};
       thisCart.dom.wrapper = element;
       thisCart.dom.toggleTrigger = thisCart.dom.wrapper.querySelector(select.cart.toggleTrigger);
+      thisCart.dom.productList = thisCart.dom.wrapper.querySelector(select.cart.productList);
     }
     initActions(){
       const thisCart = this;
@@ -338,6 +340,12 @@
     }
     add(menuProduct){
       const thisCart = this;
+      /*wygenerowanie html za pomocą szablonów, argumentem jest obiekt */
+      const generateHtml = templates.cartProduct(menuProduct);
+      /* utworzenie elementu DOM z generateHtml */
+      thisCart.element = utils.createDOMFromHTML(generateHtml);
+      /*dodajemy element do menu */
+      thisCart.dom.productList.appendChild(thisCart.element);
       console.log('adding product', menuProduct);
     }
     
